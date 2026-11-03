@@ -1,0 +1,195 @@
+/* CSS Kustom BengkelPro POS */
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --dark-bg: #0f172a;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Touch Friendly Buttons */
+.touch-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+/* Product Card Animation */
+.product-card {
+  transition: all 0.15s ease-in-out;
+}
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+.product-card:active {
+  transform: scale(0.98);
+}
+
+/* Cart Item animation */
+.cart-row {
+  transition: background-color 0.15s ease;
+}
+.cart-row:hover {
+  background-color: #f8fafc;
+}
+
+/* Badges */
+.badge-stock-safe {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.badge-stock-low {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.badge-stock-empty {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.badge-service {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+/* Developer Console Styles */
+.dev-terminal {
+  background-color: #0b1120;
+  color: #38bdf8;
+  font-family: 'Courier New', Courier, monospace;
+}
+.dev-log-line {
+  border-bottom: 1px solid #1e293b;
+  padding: 4px 0;
+  font-size: 0.825rem;
+}
+.dev-log-error { color: #f87171; }
+.dev-log-warn { color: #fbbf24; }
+.dev-log-info { color: #60a5fa; }
+.dev-log-success { color: #4ade80; }
+
+/* Thermal Receipt Styling on Screen */
+.thermal-receipt-preview {
+  background-color: #ffffff;
+  color: #111827;
+  font-family: 'Courier New', Courier, monospace;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px dashed #cbd5e1;
+  position: relative;
+}
+
+.thermal-receipt-preview.preview-58mm {
+  max-width: 320px;
+  font-size: 11px;
+}
+
+.thermal-receipt-preview.preview-80mm {
+  max-width: 380px;
+  font-size: 12px;
+}
+
+/* Thermal Receipt Styling for PRINTING */
+#receiptPrintArea {
+  display: none;
+}
+
+@media print {
+  /* Sembunyikan semua elemen kecuali area struk thermal */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+  
+  #receiptPrintArea, #receiptPrintArea * {
+    visibility: visible !important;
+  }
+  
+  #receiptPrintArea {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-weight: 600 !important;
+  }
+
+  /* Thermal 58mm (Kertas Lebar 58mm, area cetak ~48mm-50mm) */
+  #receiptPrintArea.paper-58mm {
+    width: 48mm !important;
+    max-width: 48mm !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    padding: 1mm 2mm !important;
+  }
+
+  /* Thermal 80mm (Kertas Lebar 80mm, area cetak ~72mm) */
+  #receiptPrintArea.paper-80mm {
+    width: 72mm !important;
+    max-width: 72mm !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    padding: 2mm 3mm !important;
+  }
+
+  /* Digital Voucher / Proof of Payment Print */
+  #receiptPrintArea.paper-digital {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    font-size: 11px !important;
+    font-family: system-ui, -apple-system, sans-serif !important;
+    padding: 2mm 3mm !important;
+  }
+
+  @page {
+    margin: 0 !important;
+    size: auto;
+  }
+}
+
+/* QR Code Display Canvas */
+.qr-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+}

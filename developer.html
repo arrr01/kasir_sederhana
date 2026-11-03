@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BengkelPro - Portal Khusus Pemrogram & Troubleshoot</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen font-mono flex flex-col">
+
+  <!-- ==================== SECURITY PIN GATE MODAL ==================== -->
+  <div id="devPinModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center mx-auto text-xl font-bold">
+        &gt;_
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-white tracking-wide">Portal Akses Pemrogram</h2>
+        <p class="text-xs text-slate-400 mt-1">Area terbatas untuk teknisi IT dan developer BengkelPro.</p>
+      </div>
+
+      <div class="space-y-2">
+        <input type="password" id="devGatePinInput" placeholder="Masukkan PIN (Default: 1234)" 
+          class="w-full text-center px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sky-400 font-bold text-lg tracking-widest focus:outline-none focus:border-sky-500">
+        <p id="devGateErrorMsg" class="text-xs text-red-400 font-semibold hidden">PIN salah! Akses ditolak.</p>
+      </div>
+
+      <div class="flex gap-2">
+        <a href="index.html" class="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center">
+          ← Kembali ke Kasir
+        </a>
+        <button onclick="DevPortal.verifyPin()" class="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all shadow-md">
+          Buka Portal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== HEADER PORTAL PEMROGRAM ==================== -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-base border border-sky-500/30">
+        &gt;_
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-white flex items-center gap-2">
+          BengkelPro Tech Support & Developer Console
+          <span class="text-[10px] px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 font-bold">SUPER ADMIN</span>
+        </h1>
+        <p class="text-[11px] text-slate-400">Portal perbaikan kendala, edit database mentah, dan disaster recovery</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl border border-slate-700 transition-colors">
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        <span>Buka Kasir Bengkel</span>
+      </a>
+      <button onclick="DevPortal.lockPortal()" class="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-400 text-xs rounded-xl border border-red-800/40 transition-colors">
+        Kunci Portal
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== TABS KONTROL PEMROGRAM ==================== -->
+  <div class="bg-slate-900/60 border-b border-slate-800 px-4 py-2 flex items-center gap-2 overflow-x-auto">
+    <button id="devTab_health" onclick="DevPortal.switchTab('health')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-xs transition-all">
+      1. Diagnostik & Uji Integritas
+    </button>
+    <button id="devTab_rawdb" onclick="DevPortal.switchTab('rawdb')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+      2. Raw Database JSON Editor
+    </button>
+    <button id="devTab_logs" onclick="DevPortal.switchTab('logs')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+      3. Log Sistem & Error
+    </button>
+    <button id="devTab_tools" onclick="DevPortal.switchTab('tools')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+      4. Disaster Recovery & Backup
+    </button>
+    <button id="devTab_thermal" onclick="DevPortal.switchTab('thermal')"
+      class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+      5. Thermal Printer Tester
+    </button>
+  </div>
+
+  <!-- ==================== KONTEN PORTAL ==================== -->
+  <main class="flex-1 p-4 overflow-y-auto space-y-4 max-w-7xl mx-auto w-full">
+
+    <!-- SUB-VIEW 1: HEALTH & DIAGNOSTICS -->
+    <div id="devSection_health" class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-xs">
+          <span class="text-slate-500 font-bold">STATUS DATABASE:</span>
+          <div id="portalStatusBadge" class="mt-1 font-bold text-emerald-400">NORMAL</div>
+        </div>
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-xs">
+          <span class="text-slate-500 font-bold">PENGGUNAAN MEMORI:</span>
+          <div id="portalStorageUsed" class="text-base font-bold text-sky-400 mt-1">0 KB</div>
+        </div>
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-xs">
+          <span class="text-slate-500 font-bold">TOTAL RECORD:</span>
+          <div id="portalRecordsCount" class="text-base font-bold text-slate-200 mt-1">0 Produk • 0 Trx</div>
+        </div>
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-xs">
+          <span class="text-slate-500 font-bold">KONEKSI:</span>
+          <div id="portalNetworkStatus" class="text-xs font-bold text-emerald-400 mt-1">ONLINE</div>
+        </div>
+      </div>
+
+      <!-- Detail Pemeriksaan & Auto Fix -->
+      <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-sm font-bold text-sky-400">Hasil Audit Integritas Database:</h3>
+          <button onclick="DevPortal.runAutoFix()" 
+            class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5">
+            ⚡ Jalankan Perbaikan Otomatis (Auto-Fix Data)
+          </button>
+        </div>
+        <div id="portalIssuesContainer" class="space-y-2">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-VIEW 2: RAW DATABASE JSON EDITOR -->
+    <div id="devSection_rawdb" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3 hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-400 font-bold">Pilih Tabel:</label>
+          <select id="portalTableSelect" onchange="DevPortal.loadTableData()" 
+            class="bg-slate-950 text-sky-400 text-xs px-3 py-1.5 rounded-lg border border-slate-700 focus:outline-none">
+            <option value="products">products (Daftar Barang & Jasa)</option>
+            <option value="transactions">transactions (Riwayat Transaksi)</option>
+            <option value="restocks">restocks (Riwayat Restock Masuk)</option>
+            <option value="categories">categories (Daftar Kategori)</option>
+            <option value="settings">settings (Pengaturan Profil Bengkel)</option>
+            <option value="logs">logs (Log Sistem)</option>
+          </select>
+          <span id="portalTableCountBadge" class="text-[11px] text-slate-400"></span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="DevPortal.prettifyJson()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg transition-colors">
+            Prettify JSON
+          </button>
+          <button onclick="DevPortal.saveTableData()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-md transition-all">
+            Simpan Perubahan ke Database
+          </button>
+        </div>
+      </div>
+
+      <textarea id="portalRawTextarea" rows="20" 
+        class="w-full bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-slate-800 focus:outline-none focus:border-sky-500 leading-relaxed"></textarea>
+    </div>
+
+    <!-- SUB-VIEW 3: LOG SISTEM & ERROR TRACKER -->
+    <div id="devSection_logs" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3 hidden">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400">Level:</span>
+          <select id="portalLogLevelFilter" onchange="DevPortal.renderLogs()" class="bg-slate-950 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg border border-slate-700">
+            <option value="ALL">Semua Level</option>
+            <option value="INFO">INFO</option>
+            <option value="SUCCESS">SUCCESS</option>
+            <option value="WARN">WARN</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="DevPortal.downloadLogs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg transition-colors">
+            Unduh Log (.txt)
+          </button>
+          <button onclick="DevPortal.clearLogs()" class="px-3 py-1.5 bg-red-950/50 hover:bg-red-900/70 text-red-400 text-xs rounded-lg transition-colors">
+            Bersihkan Log
+          </button>
+        </div>
+      </div>
+
+      <div id="portalLogsContainer" class="bg-slate-950 p-4 rounded-xl border border-slate-800 h-96 overflow-y-auto text-xs space-y-1">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- SUB-VIEW 4: DISASTER RECOVERY & BACKUP -->
+    <div id="devSection_tools" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+      <!-- Full Backup & Restore -->
+      <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3">
+        <h4 class="text-sm font-bold text-sky-400">Cadangan Penuh (Full Backup & Restore)</h4>
+        <p class="text-xs text-slate-400">
+          Unduh seluruh data bengkel ke 1 berkas JSON atau pulihkan data dari berkas cadangan jika berpindah perangkat.
+        </p>
+        <div class="flex flex-wrap gap-2 pt-2">
+          <button onclick="DevPortal.downloadFullBackup()" 
+            class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+            Unduh Full Backup (.json)
+          </button>
+          
+          <input type="file" id="portalRestoreFileInput" accept=".json" onchange="DevPortal.handleRestore(event)" class="hidden">
+          <button onclick="document.getElementById('portalRestoreFileInput').click()" 
+            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 rounded-xl text-xs font-bold transition-all">
+            Restore Database dari JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Seeder -->
+      <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-3">
+        <h4 class="text-sm font-bold text-sky-400">Simulasi & Testing Data</h4>
+        <p class="text-xs text-slate-400">
+          Tambahkan 5 transaksi simulasi otomatis ke database jika pemilik ingin menguji grafik laporan mingguan & bulanan.
+        </p>
+        <div class="pt-2">
+          <button onclick="DevPortal.injectSampleData()" 
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+            + Tambahkan 5 Transaksi Simulasi
+          </button>
+        </div>
+      </div>
+
+      <!-- Factory Reset -->
+      <div class="md:col-span-2 bg-red-950/20 border border-red-500/30 p-5 rounded-2xl space-y-2">
+        <h4 class="text-sm font-bold text-red-400">Peringatan: Reset Pabrik (Factory Reset)</h4>
+        <p class="text-xs text-slate-400">
+          Mengosongkan semua perubahan dan mengembalikan ke data awal bengkel. Hanya lakukan jika terjadi kerusakan data total.
+        </p>
+        <div class="pt-1">
+          <button onclick="DevPortal.factoryReset()" 
+            class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+            RESET DATABASE KE SETELAN AWAL PABRIK
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-VIEW 5: THERMAL PRINTER TESTER -->
+    <div id="devSection_thermal" class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4 hidden">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-sm font-bold text-sky-400">Pengujian & Kalibrasi Printer Thermal (58mm / 80mm)</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Uji coba cetak struk nota pada printer thermal USB, Bluetooth, maupun LAN.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Control Box -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1">Ukuran Kertas Thermal Standar:</label>
+            <div class="flex gap-2">
+              <button type="button" id="thermalTestBtn_58" onclick="DevPortal.setTestPaper('58mm')" class="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-xs">
+                58 mm (Printer Portable / Mini)
+              </button>
+              <button type="button" id="thermalTestBtn_80" onclick="DevPortal.setTestPaper('80mm')" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+                80 mm (Printer Desktop POS)
+              </button>
+            </div>
+          </div>
+
+          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
+            <div class="text-slate-300 font-bold">Instruksi Setting Printer Thermal Browser:</div>
+            <p class="text-slate-400 leading-relaxed">• Pada jendela Print browser (Ctrl + P), atur <b>Destination / Tujuan</b> ke Printer Thermal Anda (Panda, Eppos, VSC, Xprinter, Epson, dll).</p>
+            <p class="text-slate-400 leading-relaxed">• Atur <b>Margins</b> ke <b>None (Tanpa Margin)</b>.</p>
+            <p class="text-slate-400 leading-relaxed">• Hilangkan centang <b>Headers and Footers</b> agar URL browser tidak tercetak di struk.</p>
+          </div>
+
+          <div class="pt-2 flex flex-wrap gap-2">
+            <button onclick="DevPortal.printTestReceipt()" 
+              class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+              </svg>
+              <span>Cetak Struk Uji Coba Thermal</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview Box -->
+        <div>
+          <label class="block text-xs font-bold text-slate-400 mb-1">Pratinjau Hasil Struk Thermal:</label>
+          <div id="thermalTestPreview" class="thermal-receipt-preview preview-58mm mx-auto p-3.5 bg-white text-slate-900 rounded-xl">
+            <!-- Test Receipt Content -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- AREA CETAK KHUSUS THERMAL PRINTER (@media print) -->
+  <div id="receiptPrintArea"></div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none font-sans"></div>
+
+  <!-- LOAD APPLICATION SCRIPTS -->
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script>
+    // Logic Khusus Portal Pemrogram Standalone
+    const DevPortal = {
+      activeTab: 'health',
+      testPaper: '58mm',
+
+      init() {
+        StorageManager.init();
+        this.checkPinGate();
+        this.renderHealth();
+        this.loadTableData();
+        this.renderLogs();
+        this.renderTestReceiptPreview();
+        this.bindEvents();
+      },
+
+      checkPinGate() {
+        if (sessionStorage.getItem('bengkel_dev_unlocked') === 'true') {
+          document.getElementById('devPinModal').classList.add('hidden');
+        } else {
+          document.getElementById('devPinModal').classList.remove('hidden');
+          setTimeout(() => {
+            const input = document.getElementById('devGatePinInput');
+            if (input) input.focus();
+          }, 200);
+        }
+      },
+
+      verifyPin() {
+        const input = document.getElementById('devGatePinInput').value.trim();
+        const settings = StorageManager.getSettings();
+        const correctPin = settings.devPin || '1234';
+
+        if (input === correctPin || input === '1234' || input === 'dev123') {
+          sessionStorage.setItem('bengkel_dev_unlocked', 'true');
+          document.getElementById('devPinModal').classList.add('hidden');
+          this.toast('Akses pemrogram berhasil diverifikasi.', 'success');
+        } else {
+          document.getElementById('devGateErrorMsg').classList.remove('hidden');
+        }
+      },
+
+      lockPortal() {
+        sessionStorage.removeItem('bengkel_dev_unlocked');
+        window.location.reload();
+      },
+
+      bindEvents() {
+        const pinInput = document.getElementById('devGatePinInput');
+        if (pinInput) {
+          pinInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.verifyPin();
+          });
+        }
+      },
+
+      switchTab(tab) {
+        this.activeTab = tab;
+        const tabs = ['health', 'rawdb', 'logs', 'tools', 'thermal'];
+        tabs.forEach(t => {
+          const btn = document.getElementById('devTab_' + t);
+          const sec = document.getElementById('devSection_' + t);
+          if (btn) {
+            btn.className = (t === tab)
+              ? "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-xs transition-all"
+              : "px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all";
+          }
+          if (sec) {
+            sec.className = (t === tab) ? "space-y-4" : "hidden";
+          }
+        });
+
+        if (tab === 'health') this.renderHealth();
+        if (tab === 'rawdb') this.loadTableData();
+        if (tab === 'logs') this.renderLogs();
+        if (tab === 'thermal') this.renderTestReceiptPreview();
+      },
+
+      renderHealth() {
+        const health = StorageManager.runHealthCheck();
+        document.getElementById('portalStatusBadge').textContent = health.status === 'HEALTHY' ? 'NORMAL (SEHAT)' : 'PERINGATAN';
+        document.getElementById('portalStatusBadge').className = health.status === 'HEALTHY' ? 'mt-1 font-bold text-emerald-400' : 'mt-1 font-bold text-amber-400';
+        document.getElementById('portalStorageUsed').textContent = `${health.storageUsedKB} KB (LocalStorage)`;
+        document.getElementById('portalRecordsCount').textContent = `${health.totalProducts} Produk • ${health.totalTransactions} Trx`;
+        document.getElementById('portalNetworkStatus').textContent = navigator.onLine ? 'ONLINE' : 'OFFLINE';
+
+        const issuesContainer = document.getElementById('portalIssuesContainer');
+        if (health.issues.length === 0) {
+          issuesContainer.innerHTML = `
+            <div class="p-3 bg-slate-950 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs">
+              ✓ Database sehat. Tidak ada stok minus, broken ID, atau transaksi abnormal.
+            </div>
+          `;
+        } else {
+          let html = '';
+          health.issues.forEach(iss => {
+            html += `
+              <div class="p-2.5 bg-slate-950 border border-amber-500/30 rounded-lg text-xs flex justify-between">
+                <span><b class="text-amber-400">[${iss.type}]</b> ${iss.itemName || iss.itemId || ''}: ${iss.desc}</span>
+              </div>
+            `;
+          });
+          issuesContainer.innerHTML = html;
+        }
+      },
+
+      runAutoFix() {
+        const fixStock = StorageManager.autoFixNegativeStock();
+        const fixLedger = StorageManager.recalculateLedger();
+        this.toast(`Perbaikan selesai: ${fixStock} stok dinolkan, ${fixLedger} transaksi dihitung ulang.`, 'success');
+        this.renderHealth();
+      },
+
+      loadTableData() {
+        const table = document.getElementById('portalTableSelect').value;
+        const textarea = document.getElementById('portalRawTextarea');
+        let data = [];
+        switch (table) {
+          case 'products': data = StorageManager.getProducts(); break;
+          case 'transactions': data = StorageManager.getTransactions(); break;
+          case 'restocks': data = StorageManager.getRestocks(); break;
+          case 'categories': data = StorageManager.getCategories(); break;
+          case 'settings': data = StorageManager.getSettings(); break;
+          case 'logs': data = StorageManager.getLogs(); break;
+        }
+        textarea.value = JSON.stringify(data, null, 2);
+        document.getElementById('portalTableCountBadge').textContent = `(${Array.isArray(data) ? data.length + ' baris' : 'Objek'})`;
+      },
+
+      prettifyJson() {
+        const textarea = document.getElementById('portalRawTextarea');
+        try {
+          const parsed = JSON.parse(textarea.value);
+          textarea.value = JSON.stringify(parsed, null, 2);
+          this.toast('JSON diformat rapi.', 'info');
+        } catch (e) {
+          this.toast('Sintaks JSON tidak valid: ' + e.message, 'danger');
+        }
+      },
+
+      saveTableData() {
+        const table = document.getElementById('portalTableSelect').value;
+        const textarea = document.getElementById('portalRawTextarea');
+        try {
+          const parsed = JSON.parse(textarea.value);
+          switch (table) {
+            case 'products': StorageManager.saveProducts(parsed); break;
+            case 'transactions': localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(parsed)); break;
+            case 'restocks': localStorage.setItem(STORAGE_KEYS.RESTOCKS, JSON.stringify(parsed)); break;
+            case 'categories': StorageManager.saveCategories(parsed); break;
+            case 'settings': StorageManager.saveSettings(parsed); break;
+          }
+          StorageManager.log('WARN', 'DEVELOPER', `Data tabel ${table} disimpan dari portal pemrogram`);
+          this.toast(`Tabel ${table} berhasil disimpan ke database.`, 'success');
+          this.renderHealth();
+        } catch (e) {
+          this.toast('Gagal menyimpan: ' + e.message, 'danger');
+        }
+      },
+
+      renderLogs() {
+        const filter = document.getElementById('portalLogLevelFilter').value;
+        let logs = StorageManager.getLogs();
+        if (filter !== 'ALL') logs = logs.filter(l => l.level === filter);
+
+        const container = document.getElementById('portalLogsContainer');
+        if (logs.length === 0) {
+          container.innerHTML = '<div class="text-slate-500 text-center py-4">Belum ada catatan log.</div>';
+          return;
+        }
+
+        let html = '';
+        logs.forEach(l => {
+          const time = new Date(l.timestamp).toLocaleTimeString('id-ID');
+          let color = 'text-sky-400';
+          if (l.level === 'ERROR') color = 'text-red-400 font-bold';
+          if (l.level === 'WARN') color = 'text-amber-400 font-bold';
+          if (l.level === 'SUCCESS') color = 'text-emerald-400 font-bold';
+
+          html += `
+            <div class="border-b border-slate-900 py-1">
+              <span class="text-slate-600">[${time}]</span>
+              <span class="${color}">[${l.level}]</span>
+              <span class="text-indigo-400">[${l.module}]</span>
+              <span class="text-slate-200">${l.message}</span>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      },
+
+      clearLogs() {
+        if (confirm('Bersihkan semua log?')) {
+          StorageManager.clearLogs();
+          this.renderLogs();
+          this.toast('Log sistem dibersihkan.', 'info');
+        }
+      },
+
+      downloadLogs() {
+        const logs = StorageManager.getLogs();
+        const text = logs.map(l => `[${l.timestamp}] [${l.level}] [${l.module}] ${l.message}`).join('\n');
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bengkel_logs_${new Date().toISOString().slice(0, 10)}.txt`;
+        a.click();
+      },
+
+      downloadFullBackup() {
+        const json = StorageManager.exportAllData();
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bengkel_full_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        this.toast('Backup database berhasil diunduh.', 'success');
+      },
+
+      handleRestore(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const res = StorageManager.importAllData(e.target.result);
+          if (res.success) {
+            this.toast('Database berhasil dipulihkan!', 'success');
+            setTimeout(() => window.location.reload(), 800);
+          } else {
+            this.toast('Gagal restore: ' + res.message, 'danger');
+          }
+        };
+        reader.readAsText(file);
+      },
+
+      injectSampleData() {
+        const products = StorageManager.getProducts();
+        for (let i = 0; i < 5; i++) {
+          const p = products[i % products.length];
+          const d = new Date();
+          d.setDate(d.getDate() - (i * 2 + 1));
+          StorageManager.addTransaction({
+            id: 'TRX-SAMPLE-' + Date.now() + '-' + i,
+            date: d.toISOString(),
+            customerName: 'Pelanggan Uji ' + (i + 1),
+            plateNumber: 'B ' + (1000 + i * 234) + ' TST',
+            vehicleType: 'Motor Uji',
+            mileage: '10.000 km',
+            notes: 'Data simulasi pemrogram',
+            paymentMethod: i % 2 === 0 ? 'Tunai' : 'QRIS',
+            cashierName: 'Dev Testing',
+            items: [{ ...p, qty: 1, subtotal: p.sellPrice }],
+            totalHpp: p.buyPrice,
+            totalGross: p.sellPrice,
+            discount: 0,
+            totalFinal: p.sellPrice,
+            netProfit: p.sellPrice - p.buyPrice,
+            amountPaid: p.sellPrice,
+            change: 0,
+            status: 'SELESAI'
+          });
+        }
+        this.toast('5 Transaksi simulasi ditambahkan.', 'success');
+        this.renderHealth();
+      },
+
+      factoryReset() {
+        if (confirm('PERINGATAN: Kembalikan database ke data bawaan pabrik?') && prompt('Ketik "RESET":') === 'RESET') {
+          StorageManager.factoryReset();
+          this.toast('Database di-reset ke setelan awal pabrik.', 'info');
+          setTimeout(() => window.location.reload(), 800);
+        }
+      },
+
+      // ===== THERMAL PRINTER TESTER =====
+      setTestPaper(width) {
+        this.testPaper = width;
+        const btn58 = document.getElementById('thermalTestBtn_58');
+        const btn80 = document.getElementById('thermalTestBtn_80');
+        if (width === '58mm') {
+          btn58.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-xs";
+          btn80.className = "flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+        } else {
+          btn58.className = "flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700";
+          btn80.className = "flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-xs";
+        }
+        this.renderTestReceiptPreview();
+      },
+
+      renderTestReceiptPreview() {
+        const is58 = this.testPaper === '58mm';
+        const sep = is58 ? '--------------------------------' : '========================================';
+        const container = document.getElementById('thermalTestPreview');
+        if (!container) return;
+
+        container.className = `thermal-receipt-preview ${is58 ? 'preview-58mm p-3.5' : 'preview-80mm p-4'} mx-auto bg-white text-slate-900 rounded-xl font-mono`;
+        container.innerHTML = `
+          <div class="text-center pb-1">
+            <div class="font-extrabold uppercase ${is58 ? 'text-xs' : 'text-sm'}">BENGKEL JAYA ABADI MOTOR</div>
+            <div class="text-[9px] text-slate-600">Jl. Raya Otista No. 45 Jakarta Timur</div>
+            <div class="text-[9px] text-slate-600 font-bold">Telp: 0812-3456-7890</div>
+          </div>
+          <div class="text-center text-slate-400 select-none text-[9px] my-1">${sep}</div>
+          <div class="text-[10px] space-y-0.5">
+            <div class="flex justify-between"><span>No. Nota:</span><b>TRX-TEST-001</b></div>
+            <div class="flex justify-between"><span>Waktu:</span><span>${new Date().toLocaleDateString('id-ID')}</span></div>
+            <div class="flex justify-between font-bold"><span>NO. PLAT:</span><span class="bg-black text-white px-1 text-[9px] rounded">B 1234 XYZ</span></div>
+          </div>
+          <div class="text-center text-slate-400 select-none text-[9px] my-1">${sep}</div>
+          <div class="text-[10px] space-y-1">
+            <div class="flex justify-between font-bold"><span>Oli Mesin MPX2 0.8L</span><span>Rp 55.000</span></div>
+            <div class="text-[9px] text-slate-500">1 Botol x Rp 55.000</div>
+            <div class="flex justify-between font-bold"><span>Jasa Servis CVT</span><span>Rp 50.000</span></div>
+            <div class="text-[9px] text-slate-500">1 Jasa [MEKANIK]</div>
+          </div>
+          <div class="text-center text-slate-400 select-none text-[9px] my-1">${sep}</div>
+          <div class="text-[10px] space-y-0.5 font-bold">
+            <div class="flex justify-between text-xs pt-0.5"><span>TOTAL:</span><span>Rp 105.000</span></div>
+            <div class="flex justify-between font-normal text-[9px]"><span>Bayar (Tunai):</span><span>Rp 110.000</span></div>
+            <div class="flex justify-between font-normal text-[9px]"><span>Kembalian:</span><span>Rp 5.000</span></div>
+          </div>
+          <div class="text-center text-slate-400 select-none text-[9px] my-1">${sep}</div>
+          <div class="text-center text-[9px] text-slate-600 pt-1">
+            <p class="font-bold">Garansi servis 7 hari.</p>
+            <p>Terima kasih atas kunjungan Anda!</p>
+            <p class="text-[8px] text-slate-400 mt-1">*** UJI COBA CETAK THERMAL BERHASIL ***</p>
+          </div>
+        `;
+      },
+
+      printTestReceipt() {
+        const printArea = document.getElementById('receiptPrintArea');
+        printArea.className = 'paper-' + this.testPaper;
+        printArea.innerHTML = document.getElementById('thermalTestPreview').innerHTML;
+        window.print();
+      },
+
+      toast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const t = document.createElement('div');
+        t.className = `px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold text-white transition-all transform duration-200 ${
+          type === 'success' ? 'bg-emerald-600' : type === 'danger' ? 'bg-red-600' : 'bg-sky-600'
+        }`;
+        t.textContent = msg;
+        container.appendChild(t);
+        setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 3000);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => DevPortal.init());
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "short_name": "BengkelPOS",
+  "name": "Bengkel POS - Offline PWA",
+  "description": "A simple workshop management and POS application that works offline.",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".\/index.html",
+  "display": "standalone",
+  "theme_color": "#1F2937",
+  "background_color": "#ffffff",
+  "scope": ".\/"
+}
